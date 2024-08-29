@@ -1,16 +1,10 @@
 # weather_bnka
 
-A new Flutter project.
+Un ejercicio para mostrar la temperatura para una lista de ciudades.
 
-## Getting Started
+## Recomendaciones
 
-This project is a starting point for a Flutter application.
+Primero debe registrar un nombre de usuario y una contraseña para poder acceder a la página de Home.
 
-A few resources to get you started if this is your first Flutter project:
+El proyecto está con la última versión de Flutter v3.24.1
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
