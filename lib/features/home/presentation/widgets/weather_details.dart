@@ -106,7 +106,7 @@ class _WeatherDetailsState extends State<WeatherDetails> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Container(
+          SizedBox(
             height: MediaQuery.of(context).size.height * 0.2,
             width: MediaQuery.of(context).size.width * 0.8,
             child: _selectedIndex != null &&

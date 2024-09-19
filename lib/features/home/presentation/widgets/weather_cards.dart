@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:weather_bnka/core/util/utils.dart';
 import 'package:weather_bnka/features/home/presentation/bloc/weather_bloc.dart';
 import 'package:weather_repository/weather_repository.dart';
 
@@ -23,7 +22,6 @@ class WeatherCardList extends StatefulWidget {
 class _WeatherCardListState extends State<WeatherCardList> {
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
   }
 
@@ -37,8 +35,7 @@ class _WeatherCardListState extends State<WeatherCardList> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: GridView.builder(
-        physics:
-            const AlwaysScrollableScrollPhysics(), // Ensure GridView scrolls properly
+        physics: const AlwaysScrollableScrollPhysics(),
         shrinkWrap: true,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
@@ -65,13 +62,11 @@ class _WeatherCardListState extends State<WeatherCardList> {
                       width: 32,
                       height: 32,
                       child: IconButton(
-                       
-                        padding: const EdgeInsets.all(
-                            4), 
+                        padding: const EdgeInsets.all(4),
                         icon: const Icon(
                           Icons.delete_forever,
                           color: Colors.black38,
-                          size: 20, 
+                          size: 20,
                         ),
                         onPressed: () =>
                             _removeWeatherFavCity(weatherCity.name),

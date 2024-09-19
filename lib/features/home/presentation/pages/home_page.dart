@@ -69,7 +69,7 @@ class _HomePageState extends State<HomePage> {
         body: BlocProvider<WeatherBloc>(
           create: (context) => getIt<WeatherBloc>(),
           child: _selectedIndex == 0
-              ? WeatherDetails()
+              ? const WeatherDetails()
               : CitiesListCards(onCityFavorite: _navigateToWeatherDetails),
         ),
         bottomNavigationBar: BottomNavigationBar(

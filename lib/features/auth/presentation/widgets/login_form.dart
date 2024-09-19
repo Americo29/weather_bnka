@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:weather_bnka/config/routes/app_routes.dart';
 import 'package:weather_bnka/features/auth/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:weather_bnka/features/auth/presentation/widgets/action_button.dart';
