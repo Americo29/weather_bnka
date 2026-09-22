@@ -29,7 +29,7 @@ class _CitiesListCardsState extends State<CitiesListCards> {
   void _toggleFavorite(String cityName) {
     final weatherBloc = BlocProvider.of<WeatherBloc>(context);
     weatherBloc.add(MarkCityAsFavorite(cityName));
-    widget.onCityFavorite(); 
+    widget.onCityFavorite();
   }
 
   @override

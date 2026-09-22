@@ -77,7 +77,7 @@ class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
         emit(CitiesFavoriteUpdated(cities));
       }
     } catch (error) {
-      emit(const WeatherError(message: 'FError al obtener la data'));
+      emit(const WeatherError(message: 'Error al obtener la data'));
     }
   }
 

@@ -2,11 +2,8 @@ import '../../domain/entities/city.dart';
 import '../../domain/repositories/city_repository.dart';
 
 class CityRepositoryImpl implements CityRepository {
-  CityRepositoryImpl();
-
-  @override
-  List<City> getCities() {
-    return const [
+  CityRepositoryImpl() {
+    _cities = const [
       City(name: "Madrid", isFavorite: false),
       City(name: "Chicago", isFavorite: false),
       City(name: "Berlin", isFavorite: false),
@@ -28,5 +25,12 @@ class CityRepositoryImpl implements CityRepository {
       City(name: "Sydney", isFavorite: false),
       City(name: "Dakar", isFavorite: false),
     ];
+  }
+
+  late List<City> _cities;
+
+  @override
+  List<City> getCities() {
+    return _cities;
   }
 }
