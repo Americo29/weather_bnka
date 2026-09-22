@@ -17,7 +17,7 @@ reactiva basada en eventos y estados.
 - [Estructura del proyecto](#estructura-del-proyecto)
 - [Flujo de datos](#flujo-de-datos)
 - [Gestión de estado (BLoC)](#gestión-de-estado-bloc)
-- [Tematización por condición climática](#tematización-por-condición-climática)
+- [Tema y accesibilidad](#tema-y-accesibilidad)
 - [Internacionalización](#internacionalización)
 - [Inyección de dependencias](#inyección-de-dependencias)
 - [API externa](#api-externa)
@@ -44,7 +44,6 @@ reactiva basada en eventos y estados.
 | 7 | **Eliminar ciudad** | Quita una ciudad del panel y sincroniza el estado del catálogo. |
 | 8 | **Logout** | Limpia la sesión persistida y devuelve al login sin dejar rutas en el stack. |
 | 9 | **Carga visible** | Cada ciudad muestra un spinner en su tarjeta mientras se resuelve; el panel conserva la ciudad anterior hasta que la nueva termina. |
-| 10 | **Tema según el clima** | La paleta de la app se deriva del código WMO de la ciudad seleccionada. |
 
 Navegación: `Splash` (3,5 s con animación) → `Login` ⇄ `Signup` → `Home` (tabs *Home* / *Cities*).
 
@@ -233,33 +232,27 @@ la inyección del BLoC en el subárbol.
 
 ---
 
-## Tematización por condición climática
+## Tema y accesibilidad
 
-La app se pinta con el clima que está mostrando. `current_weather.weathercode`
-de Open-Meteo es un **código WMO**, y `ThemeManager` lo traduce a un `ThemeData`
-completo agrupando por condición, no mapeando código por código: a la paleta
-solo le importa si afuera está despejado, nublado, lloviendo o tronando.
+La app usa **un solo tema**, definido en `config/theme/app_theme.dart`.
 
-| Códigos WMO | Condición | Paleta |
-|---|---|---|
-| 0–1 | despejado | `sunny` |
-| 2–3, 45–48 | nublado y niebla | `cloudy` |
-| 51–67, 80–82 | llovizna, lluvia y chubascos | `rainy` |
-| 71–77, 85–86 | nieve | `night` |
-| 95–99 | tormenta eléctrica | `stormy` |
+Una versión anterior derivaba la paleta del pronóstico, y se descartó tras
+verlo funcionando: el código WMO describe **el estado del cielo, no la
+temperatura**, y en la práctica casi todas las ciudades reportan 0–3 (de
+despejado a cubierto). El resultado era una app ámbar casi siempre, incluso
+mostrando 11 °C, con las paletas de lluvia y tormenta sin aparecer nunca. Un
+cromado que cambia bajo el usuario sin decirle nada es peor que uno que se
+queda quieto.
 
-Sin lectura todavía, cae a `sunny`. El repintado está condicionado a
-`WeatherCityLoaded`, de modo que **solo una carga completa cambia el tema**.
+**Todos los pares de color superan WCAG AA (4.5:1).** No es una afirmación de
+buena fe: `app_theme_test` mide las razones de contraste de cada superficie
+—etiquetas de botón, texto sobre la página, texto sobre tarjeta, estados de
+error y el ítem activo de la barra inferior— y verifica primero su propia
+aritmética comprobando que negro sobre blanco dé exactamente 21.
 
-### Contraste
-
-Las paletas declaran sus propios colores de texto, pero varias de esas
-combinaciones no alcanzan el mínimo de **WCAG AA (4.5:1)**: el color de un
-`TextButton` tomado de `primary` va de 1.18 a 2.43 según la paleta, y el
-blanco sobre `rainy` queda en 4.11. Por eso el color de primer plano **se
-calcula** a partir de la luminancia del color de fondo en vez de confiar en el
-declarado. `theme_test` mide las razones de contraste en lugar de afirmar
-colores concretos, así que la garantía sobrevive a que alguien edite una paleta.
+Esto surgió de un fallo real: la versión por clima pintaba "¿Has olvidado tu
+contraseña?" en dorado sobre crema, **1.32:1**. El test existe para que no
+vuelva a pasar inadvertido.
 
 ---
 
@@ -450,14 +443,14 @@ no usa APIs exclusivas de móvil, pero esas plataformas no forman parte del alca
 
 ```bash
 flutter analyze                                   # → No issues found!
-flutter test                                      # → 49 tests, app
+flutter test                                      # → 45 tests, app
 cd packages/weather_repository && flutter test    # → 15 tests, paquete de dominio
 
 # Recorrido completo sobre un dispositivo real o simulador
 flutter test integration_test/ -d <device-id>
 ```
 
-**64 pruebas, ambas suites en verde y el analizador sin hallazgos.** Cada
+**60 pruebas, ambas suites en verde y el analizador sin hallazgos.** Cada
 módulo mantiene su propia suite, igual que su propio `pubspec.yaml`.
 
 | Suite | Archivo | Qué cubre |
@@ -468,7 +461,7 @@ módulo mantiene su propia suite, igual que su propio `pubspec.yaml`.
 | App | `test/features/home/cities_list_cards_test.dart` | La petición del catálogo al montar, la estrella de favorito y el retorno al panel al elegir ciudad. |
 | App | `test/features/home/weather_cards_test.dart` | Spinner vs. temperatura, que una tarjeta en curso no se pueda seleccionar ni borrar, y el resaltado de la seleccionada. |
 | App | `test/features/home/weather_details_test.dart` | Que una ciudad llegue al panel solo al completar, que la selección previa sobreviva tanto a otra carga en curso como a un fallo, y que el resumen cuente solo lo cargado. |
-| App | `test/config/theme_test.dart` | El mapeo de códigos WMO a paletas y las **razones de contraste WCAG AA**. |
+| App | `test/config/app_theme_test.dart` | Las **razones de contraste WCAG AA** de cada superficie del tema. |
 | Paquete | `test/data/models_test.dart` | `fromJson`/`toJson` contra la forma real de la respuesta de Open-Meteo. |
 | Paquete | `test/domain/city_test.dart` | Inmutabilidad de `City.toggleFavorite()` e igualdad por valor. |
 | Paquete | `test/domain/usecases_test.dart` | Delegación, propagación de fallos y orden de los argumentos. |
