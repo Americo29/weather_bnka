@@ -47,7 +47,6 @@ class _WeatherCardListState extends State<WeatherCardList> {
         itemBuilder: (context, index) {
           final weatherCity = widget.weatherCityList[index];
           final isSelected = widget.selectedIndex == index;
-          final countryCode = weatherCity.location?.countryCode;
 
           return GestureDetector(
             onTap: () => widget.onCardSelected(index),
