@@ -17,6 +17,8 @@ reactiva basada en eventos y estados.
 - [Estructura del proyecto](#estructura-del-proyecto)
 - [Flujo de datos](#flujo-de-datos)
 - [Gestión de estado (BLoC)](#gestión-de-estado-bloc)
+- [Tematización por condición climática](#tematización-por-condición-climática)
+- [Internacionalización](#internacionalización)
 - [Inyección de dependencias](#inyección-de-dependencias)
 - [API externa](#api-externa)
 - [Persistencia local](#persistencia-local)
@@ -41,6 +43,8 @@ reactiva basada en eventos y estados.
 | 6 | **Agregados en vivo** | Ciudad más cálida, ciudad más fría y conteo total, recalculados en cada cambio. |
 | 7 | **Eliminar ciudad** | Quita una ciudad del panel y sincroniza el estado del catálogo. |
 | 8 | **Logout** | Limpia la sesión persistida y devuelve al login sin dejar rutas en el stack. |
+| 9 | **Carga visible** | Cada ciudad muestra un spinner en su tarjeta mientras se resuelve; el panel conserva la ciudad anterior hasta que la nueva termina. |
+| 10 | **Tema según el clima** | La paleta de la app se deriva del código WMO de la ciudad seleccionada. |
 
 Navegación: `Splash` (3,5 s con animación) → `Login` ⇄ `Signup` → `Home` (tabs *Home* / *Cities*).
 
@@ -229,6 +233,51 @@ la inyección del BLoC en el subárbol.
 
 ---
 
+## Tematización por condición climática
+
+La app se pinta con el clima que está mostrando. `current_weather.weathercode`
+de Open-Meteo es un **código WMO**, y `ThemeManager` lo traduce a un `ThemeData`
+completo agrupando por condición, no mapeando código por código: a la paleta
+solo le importa si afuera está despejado, nublado, lloviendo o tronando.
+
+| Códigos WMO | Condición | Paleta |
+|---|---|---|
+| 0–1 | despejado | `sunny` |
+| 2–3, 45–48 | nublado y niebla | `cloudy` |
+| 51–67, 80–82 | llovizna, lluvia y chubascos | `rainy` |
+| 71–77, 85–86 | nieve | `night` |
+| 95–99 | tormenta eléctrica | `stormy` |
+
+Sin lectura todavía, cae a `sunny`. El repintado está condicionado a
+`WeatherCityLoaded`, de modo que **solo una carga completa cambia el tema**.
+
+### Contraste
+
+Las paletas declaran sus propios colores de texto, pero varias de esas
+combinaciones no alcanzan el mínimo de **WCAG AA (4.5:1)**: el color de un
+`TextButton` tomado de `primary` va de 1.18 a 2.43 según la paleta, y el
+blanco sobre `rainy` queda en 4.11. Por eso el color de primer plano **se
+calcula** a partir de la luminancia del color de fondo en vez de confiar en el
+declarado. `theme_test` mide las razones de contraste en lugar de afirmar
+colores concretos, así que la garantía sobrevive a que alguien edite una paleta.
+
+---
+
+## Internacionalización
+
+Toda la copia de la interfaz sale de `lib/l10n/app_es.arb` vía
+`flutter_localizations`, y la app está fijada a **español**. Los plurales usan
+ICU (`{count, plural, =1{1 ciudad} other{{count} ciudades}}`), así que la
+concordancia es una entrada del ARB y no un ternario en el sitio de uso.
+
+**Los mensajes no viven en el dominio.** `AuthFailure` transporta un
+`AuthFailureReason` y `WeatherError` no lleva texto: un BLoC reporta *qué*
+pasó, y decidir *cómo* decirlo es responsabilidad de la capa de presentación.
+Eso permite además que un mismo fallo se exprese distinto por idioma sin tocar
+lógica.
+
+---
+
 ## Inyección de dependencias
 
 `get_it` como *service locator*, con todo el grafo declarado en un único punto
@@ -307,10 +356,13 @@ Ningún widget ni BLoC habla con `SharedPreferences` directamente: la dependenci
 | [`get_it`](https://pub.dev/packages/get_it) | 7.7.0 | Service locator para la inyección de dependencias. |
 | [`dio`](https://pub.dev/packages/dio) | 5.6.0 | Cliente HTTP (interceptores, timeouts y manejo de errores tipado). |
 | [`shared_preferences`](https://pub.dev/packages/shared_preferences) | 2.3.2 | Almacenamiento clave-valor de la sesión. |
+| [`flutter_localizations`](https://docs.flutter.dev/ui/accessibility-and-internationalization/internationalization) | SDK | Localización de la interfaz y de los widgets de Material. |
+| [`intl`](https://pub.dev/packages/intl) | SDK | Mensajes ICU (plurales, interpolación) generados desde el ARB. |
 | [`cupertino_icons`](https://pub.dev/packages/cupertino_icons) | 1.0.8 | Set de iconos iOS. |
 | [`flutter_lints`](https://pub.dev/packages/flutter_lints) | 4.0.0 | Reglas de análisis estático recomendadas *(dev)*. |
 | [`bloc_test`](https://pub.dev/packages/bloc_test) | 9.1.7 | Aserciones sobre secuencias de estados emitidas por un BLoC *(dev)*. |
 | [`mocktail`](https://pub.dev/packages/mocktail) | 1.0.5 | Dobles de prueba sin generación de código *(dev)*. |
+| [`integration_test`](https://docs.flutter.dev/testing/integration-tests) | SDK | Maneja la app real sobre un dispositivo o simulador *(dev)*. |
 
 **Tipografía:** familia [Manrope](https://fonts.google.com/specimen/Manrope) (Light 300 / Regular 400 /
 Bold 700) embebida en `assets/fonts/`.
@@ -398,25 +450,41 @@ no usa APIs exclusivas de móvil, pero esas plataformas no forman parte del alca
 
 ```bash
 flutter analyze                                   # → No issues found!
-flutter test                                      # → 15 tests, app
+flutter test                                      # → 49 tests, app
 cd packages/weather_repository && flutter test    # → 15 tests, paquete de dominio
+
+# Recorrido completo sobre un dispositivo real o simulador
+flutter test integration_test/ -d <device-id>
 ```
 
-**30 pruebas, ambas suites en verde y el analizador sin hallazgos.** Cada módulo mantiene su propia
-suite, igual que su propio `pubspec.yaml`.
+**64 pruebas, ambas suites en verde y el analizador sin hallazgos.** Cada
+módulo mantiene su propia suite, igual que su propio `pubspec.yaml`.
 
 | Suite | Archivo | Qué cubre |
 |---|---|---|
-| App | `test/features/auth/auth_bloc_test.dart` | Las cuatro ramas del login (éxito, sin usuario registrado, contraseña incorrecta, usuario distinto), el alta con persistencia verificada y el logout. |
-| App | `test/features/home/weather_bloc_test.dart` | Carga del catálogo y su error, la secuencia geocodificación → pronóstico con las coordenadas correctas, el fallo al geocodificar y el **encadenamiento** `MarkCityAsFavorite` → `GetWeatherForCity`. |
-| Paquete | `test/data/models_test.dart` | `fromJson`/`toJson` de `WeatherModel` y `LocationModel` contra la forma real de la respuesta de Open-Meteo. |
+| App | `test/features/auth/auth_bloc_test.dart` | Las cuatro ramas del login, el alta con persistencia verificada y el logout. |
+| App | `test/features/auth/auth_fields_test.dart` | Cada rama de validación de los formularios y que la contraseña se oculte. |
+| App | `test/features/home/weather_bloc_test.dart` | Catálogo y su error, la secuencia geocodificación → pronóstico con las coordenadas correctas, y el encadenamiento `MarkCityAsFavorite` → `GetWeatherForCity`. |
+| App | `test/features/home/cities_list_cards_test.dart` | La petición del catálogo al montar, la estrella de favorito y el retorno al panel al elegir ciudad. |
+| App | `test/features/home/weather_cards_test.dart` | Spinner vs. temperatura, que una tarjeta en curso no se pueda seleccionar ni borrar, y el resaltado de la seleccionada. |
+| App | `test/features/home/weather_details_test.dart` | Que una ciudad llegue al panel solo al completar, que la selección previa sobreviva tanto a otra carga en curso como a un fallo, y que el resumen cuente solo lo cargado. |
+| App | `test/config/theme_test.dart` | El mapeo de códigos WMO a paletas y las **razones de contraste WCAG AA**. |
+| Paquete | `test/data/models_test.dart` | `fromJson`/`toJson` contra la forma real de la respuesta de Open-Meteo. |
 | Paquete | `test/domain/city_test.dart` | Inmutabilidad de `City.toggleFavorite()` e igualdad por valor. |
-| Paquete | `test/domain/usecases_test.dart` | Que cada caso de uso delegue en su repositorio, propague los fallos y respete el orden de los argumentos. |
+| Paquete | `test/domain/usecases_test.dart` | Delegación, propagación de fallos y orden de los argumentos. |
 | Paquete | `test/data/city_repository_impl_test.dart` | Integridad del catálogo estático. |
 
-Los dobles se construyen con `mocktail` (sin generación de código) y las secuencias de estados se
-verifican con `bloc_test`, que es lo que permite afirmar no solo *qué* estado quedó, sino **en qué
-orden se emitió cada uno** — el detalle que hace falta para probar el encadenamiento de eventos.
+Los dobles se construyen con `mocktail` (sin generación de código) y las
+secuencias de estados con `bloc_test`, que permite afirmar no solo *qué* estado
+quedó sino **en qué orden se emitió cada uno**. El helper `pumpApp` envuelve los
+widgets en el andamiaje de localización, de modo que las pruebas leen la misma
+copia en español que ve el usuario.
+
+`integration_test/weather_flow_test.dart` maneja la app real: registro, seguir
+una ciudad, ver girar su tarjeta con el panel aún vacío, y seguir una segunda
+comprobando que el panel conserva la primera hasta que la segunda resuelve.
+Vive fuera de `test/`, así que `flutter test` no lo recoge y CI no necesita un
+dispositivo.
 
 ---
 
@@ -448,22 +516,19 @@ documentan aquí para que la frontera entre *decisión* y *deuda* quede explíci
 
 Mejoras identificadas, en orden de valor:
 
-1. **Pruebas de widget e integración** — la lógica ya está cubierta (30 pruebas sobre BLoCs, casos de
-   uso y modelos); falta ejercitar los formularios, la grilla de ciudades y el recorrido completo
-   login → seleccionar ciudad → ver temperatura.
-2. **Manejo de errores tipado** — reemplazar las excepciones genéricas por un `Either<Failure, T>`
-   (`dartz` / `fpdart`) o un `sealed Result`, y distinguir sin red, timeout, ciudad no encontrada y
-   error del servidor con mensajes propios.
-3. **Persistir las ciudades seguidas** en `shared_preferences` o SQLite, para que el panel sobreviva
-   al reinicio.
-4. **Migrar el estado derivado al `WeatherState`** — hoy el BLoC conserva algunas listas como campos
-   mutables; llevarlas al estado y consumirlas con `BlocBuilder` haría el flujo unidireccional de
-   punta a punta y eliminaría el `setState` espejo en los widgets.
-5. **Tematización por condición climática** — las paletas ya están definidas en
-   `config/theme/color_palettes.dart`; falta enlazarlas al `weatherCode` que ya devuelve la API.
-6. **Configurar `Dio`** con `baseUrl`, timeouts e interceptor de logging.
-7. **CI** — `flutter analyze` + `flutter test` en cada push (GitHub Actions).
-8. **Accesibilidad e i18n** — la interfaz mezcla español e inglés; unificar vía `flutter_localizations`.
+1. **Manejo de errores tipado** — los BLoC ya reportan *qué* falló en vez de un
+   mensaje, pero las capas de datos siguen lanzando excepciones genéricas;
+   falta un `Either<Failure, T>` (`dartz` / `fpdart`) o un `sealed Result` que
+   distinga sin red, timeout, ciudad no encontrada y error del servidor.
+2. **Persistir las ciudades seguidas** en `shared_preferences` o SQLite, para
+   que el panel sobreviva al reinicio.
+3. **Migrar el estado derivado al `WeatherState`** — el BLoC todavía conserva
+   algunas listas como campos; llevarlas al estado y consumirlas con
+   `BlocBuilder` haría el flujo unidireccional de punta a punta.
+4. **Configurar `Dio`** con `baseUrl`, timeouts e interceptor de logging.
+5. **CI** — `flutter analyze` + `flutter test` en cada push (GitHub Actions).
+6. **Segundo idioma** — el andamiaje de localización ya está; agregar un locale
+   es añadir un `.arb`.
 
 ---
 
