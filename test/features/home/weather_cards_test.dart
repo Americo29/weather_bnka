@@ -98,6 +98,41 @@ void main() {
     verify(() => bloc.add(const RemoveWeatherFavCity('Madrid'))).called(1);
   });
 
+  /// WCAG 2.1 contrast ratio, from 1 (identical) to 21.
+  double contrast(Color a, Color b) {
+    final la = a.computeLuminance();
+    final lb = b.computeLuminance();
+    final (hi, lo) = la > lb ? (la, lb) : (lb, la);
+    return (hi + 0.05) / (lo + 0.05);
+  }
+
+  testWidgets('the selected card stays readable against its own fill',
+      (tester) async {
+    expect(contrast(Colors.black, Colors.white), closeTo(21, 0.01),
+        reason: 'the checker itself must be right');
+
+    await pumpCards(tester, cities: [loaded], selected: 'Madrid');
+
+    final card = tester.widget<Card>(find.byType(Card));
+    final label = tester.widget<Text>(find.text('Madrid'));
+
+    // Painting the card with the primary colour while the text kept inheriting
+    // onSurface left it at 1.71:1 -- near invisible.
+    expect(contrast(label.style!.color!, card.color!),
+        greaterThanOrEqualTo(4.5));
+  });
+
+  testWidgets('an unselected card is readable too', (tester) async {
+    await pumpCards(tester, cities: [loaded]);
+
+    final label = tester.widget<Text>(find.text('Madrid'));
+    final surface = Theme.of(tester.element(find.byType(Card)))
+        .colorScheme
+        .surface;
+
+    expect(contrast(label.style!.color!, surface), greaterThanOrEqualTo(4.5));
+  });
+
   testWidgets('only the selected card is highlighted', (tester) async {
     await pumpCards(tester, cities: [loaded, pending], selected: 'Madrid');
 

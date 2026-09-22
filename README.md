@@ -45,7 +45,7 @@ no incluir —y poder justificarlo con datos— suele valer más que la función
 | | |
 |---|---|
 | Plataformas | iOS y Android, compilación de producción verificada en ambas |
-| Pruebas | 60 automatizadas, todas en verde |
+| Pruebas | 62 automatizadas, todas en verde |
 | Análisis estático | sin observaciones |
 | Accesibilidad | WCAG AA verificado por prueba |
 | Idiomas | español, con la base lista para añadir más |
@@ -506,14 +506,14 @@ no usa APIs exclusivas de móvil, pero esas plataformas no forman parte del alca
 
 ```bash
 flutter analyze                                   # → No issues found!
-flutter test                                      # → 45 tests, app
+flutter test                                      # → 47 tests, app
 cd packages/weather_repository && flutter test    # → 15 tests, paquete de dominio
 
 # Recorrido completo sobre un dispositivo real o simulador
 flutter test integration_test/ -d <device-id>
 ```
 
-**60 pruebas, ambas suites en verde y el analizador sin hallazgos.** Cada
+**62 pruebas, ambas suites en verde y el analizador sin hallazgos.** Cada
 módulo mantiene su propia suite, igual que su propio `pubspec.yaml`.
 
 | Suite | Archivo | Qué cubre |
@@ -522,7 +522,7 @@ módulo mantiene su propia suite, igual que su propio `pubspec.yaml`.
 | App | `test/features/auth/auth_fields_test.dart` | Cada rama de validación de los formularios y que la contraseña se oculte. |
 | App | `test/features/home/weather_bloc_test.dart` | Catálogo y su error, la secuencia geocodificación → pronóstico con las coordenadas correctas, y el encadenamiento `MarkCityAsFavorite` → `GetWeatherForCity`. |
 | App | `test/features/home/cities_list_cards_test.dart` | La petición del catálogo al montar, la estrella de favorito y el retorno al panel al elegir ciudad. |
-| App | `test/features/home/weather_cards_test.dart` | Spinner vs. temperatura, que una tarjeta en curso no se pueda seleccionar ni borrar, y el resaltado de la seleccionada. |
+| App | `test/features/home/weather_cards_test.dart` | Spinner vs. temperatura, que una tarjeta en curso no se pueda seleccionar ni borrar, el resaltado de la seleccionada y su **contraste WCAG AA**. |
 | App | `test/features/home/weather_details_test.dart` | Que una ciudad llegue al panel solo al completar, que la selección previa sobreviva tanto a otra carga en curso como a un fallo, y que el resumen cuente solo lo cargado. |
 | App | `test/config/app_theme_test.dart` | Las **razones de contraste WCAG AA** de cada superficie del tema. |
 | Paquete | `test/data/models_test.dart` | `fromJson`/`toJson` contra la forma real de la respuesta de Open-Meteo. |

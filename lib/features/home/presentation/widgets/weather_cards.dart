@@ -35,6 +35,11 @@ class WeatherCardList extends StatelessWidget {
         itemBuilder: (context, index) {
           final weatherCity = weatherCityList[index];
           final isSelected = weatherCity.name == selectedCity;
+          final scheme = Theme.of(context).colorScheme;
+          // A selected card is painted with the primary colour, so its content
+          // has to switch too -- inheriting onSurface leaves it at 1.71:1.
+          final foreground =
+              isSelected ? scheme.onPrimaryContainer : scheme.onSurface;
 
           return GestureDetector(
             // A city that is still loading cannot be selected: there is
@@ -43,9 +48,7 @@ class WeatherCardList extends StatelessWidget {
                 ? () => onCardSelected(weatherCity)
                 : null,
             child: Card(
-              color: isSelected
-                  ? Theme.of(context).colorScheme.primaryContainer
-                  : null,
+              color: isSelected ? scheme.primaryContainer : null,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -57,6 +60,7 @@ class WeatherCardList extends StatelessWidget {
                       child: IconButton(
                         padding: const EdgeInsets.all(4),
                         icon: const Icon(Icons.delete_forever, size: 20),
+                        color: foreground,
                         tooltip: weatherCity.name,
                         // Removing a city mid-request would leave the pending
                         // response with nothing to land on.
@@ -72,13 +76,19 @@ class WeatherCardList extends StatelessWidget {
                     padding: const EdgeInsets.only(left: 14.0),
                     child: Text(
                       weatherCity.name,
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.normal),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.normal,
+                        color: foreground,
+                      ),
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(left: 14.0, top: 4.0),
-                    child: _CardStatus(weatherCity: weatherCity),
+                    child: _CardStatus(
+                      weatherCity: weatherCity,
+                      foreground: foreground,
+                    ),
                   ),
                 ],
               ),
@@ -92,8 +102,9 @@ class WeatherCardList extends StatelessWidget {
 
 class _CardStatus extends StatelessWidget {
   final WeatherCity weatherCity;
+  final Color foreground;
 
-  const _CardStatus({required this.weatherCity});
+  const _CardStatus({required this.weatherCity, required this.foreground});
 
   @override
   Widget build(BuildContext context) {
@@ -102,23 +113,27 @@ class _CardStatus extends StatelessWidget {
     if (weatherCity.isLoading) {
       return Semantics(
         label: l10n.loadingCity(weatherCity.name),
-        child: const SizedBox(
-          key: ValueKey('card-spinner'),
+        child: SizedBox(
+          key: const ValueKey('card-spinner'),
           width: 16,
           height: 16,
-          child: CircularProgressIndicator(strokeWidth: 2),
+          child: CircularProgressIndicator(strokeWidth: 2, color: foreground),
         ),
       );
     }
 
     final weather = weatherCity.weather;
     if (weather == null) {
-      return Text(l10n.dataUnavailable);
+      return Text(l10n.dataUnavailable, style: TextStyle(color: foreground));
     }
 
     return Text(
       l10n.temperature('${weather.temperature}'),
-      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w300),
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w300,
+        color: foreground,
+      ),
     );
   }
 }
