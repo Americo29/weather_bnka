@@ -1,12 +1,66 @@
 # Weather Bnka
 
-Aplicación Flutter que consulta el pronóstico del tiempo en tiempo real para una lista de ciudades,
-construida sobre **Clean Architecture**, **BLoC** como gestor de estado y un **paquete de dominio
-desacoplado** publicado localmente.
+Aplicación móvil que muestra la temperatura actual de las ciudades que el usuario elige seguir,
+con registro y sesión en el dispositivo. Funciona en **iOS y Android desde el mismo código**.
 
-El objetivo del proyecto es demostrar decisiones de arquitectura en una app pequeña: separación
-estricta de capas, inversión de dependencias, modularización en paquetes y una capa de presentación
-reactiva basada en eventos y estados.
+---
+
+## Para qué se construyó
+
+Es una pieza de demostración. La app es deliberadamente pequeña —consultar un clima no tiene
+misterio— porque lo que se quiso mostrar no es la funcionalidad, sino **cómo se construye algo que
+después se pueda mantener, cambiar y hacer crecer sin romperlo**.
+
+Un producto real rara vez falla por lo que hace el día que se entrega. Falla seis meses después,
+cuando hay que cambiar el proveedor de datos, sumar un idioma, entrar a un mercado nuevo o meter a
+otra persona en el equipo. Ese es el escenario que este proyecto está preparado para resistir, y
+cada decisión de abajo existe por esa razón.
+
+## Qué resuelve, en la práctica
+
+| Decisión | Qué significa para el producto |
+|---|---|
+| **El corazón del negocio está aislado del proveedor de datos** | Hoy consume una API meteorológica pública y gratuita. Cambiarla por otra —o por un servicio propio, o por datos de pago— **no obliga a tocar las pantallas**: se sustituye una pieza y el resto sigue igual. Es la diferencia entre migrar en días y reescribir. |
+| **La lógica vive en un módulo independiente** | El dominio del clima es un paquete cerrado y reutilizable. Si mañana hay una segunda app —un panel web, una versión para tablet, un widget— **parte de este trabajo se reutiliza tal cual**. |
+| **60 pruebas automatizadas** | Cada cambio futuro se valida solo. Reduce el coste de cada iteración y el riesgo de que una mejora rompa algo que ya funcionaba: el clásico "arreglamos A y se cayó B". |
+| **Un recorrido probado sobre un móvil real** | Además de las pruebas de laboratorio, hay una que **maneja la app de verdad** en un dispositivo: se registra, elige una ciudad y comprueba lo que ve el usuario. Lo que se afirma aquí está medido, no supuesto. |
+| **Preparada para más de un idioma** | Ningún texto está escrito dentro del código. Hoy está en español; **sumar otro idioma es traducir un archivo**, sin tocar la aplicación. |
+| **Accesibilidad verificada, no declarada** | El contraste de cada color cumple el estándar internacional WCAG AA, y hay una prueba automática que lo mide. Legible para quien tiene baja visión, y a la altura de los requisitos de accesibilidad que ya exigen varios mercados. |
+| **Estados de carga explícitos** | Cuando una ciudad está consultándose, su tarjeta lo indica y la pantalla **no muestra información a medias ni datos de otra ciudad**. Si la consulta falla, se conserva lo último válido en lugar de dejar la pantalla en blanco. La app nunca miente sobre lo que sabe. |
+
+## Criterio, no solo ejecución
+
+Durante el desarrollo se construyó una función que teñía la app entera según el clima. Al probarla
+con datos reales se comprobó que **no aportaba nada**: la fuente informa el estado del cielo, no la
+temperatura, y casi todas las ciudades caen en la misma categoría, así que la app se veía igual
+mostrando 11 °C que 22 °C. **Se retiró.**
+
+Queda documentada en el historial del proyecto, con la medición que llevó a descartarla. Saber qué
+no incluir —y poder justificarlo con datos— suele valer más que la función misma.
+
+---
+
+## Resumen del estado
+
+| | |
+|---|---|
+| Plataformas | iOS y Android, compilación de producción verificada en ambas |
+| Pruebas | 60 automatizadas, todas en verde |
+| Análisis estático | sin observaciones |
+| Accesibilidad | WCAG AA verificado por prueba |
+| Idiomas | español, con la base lista para añadir más |
+
+> **Alcance:** es una demostración técnica, no un producto listo para publicar en las tiendas. El
+> registro es local al dispositivo y falta la firma digital de distribución. Ambas cosas están
+> detalladas, sin adornos, en [Alcance y decisiones de diseño](#alcance-y-decisiones-de-diseño).
+
+---
+
+## Para el lector técnico
+
+Lo que sigue documenta la implementación: **Clean Architecture** con organización por features,
+**BLoC** como gestor de estado, un **paquete de dominio desacoplado** publicado localmente, e
+inyección de dependencias mediante *service locator*.
 
 ---
 
@@ -403,24 +457,25 @@ No hace falta ninguna variable de entorno ni API key: Open-Meteo es de acceso ab
 
 ## Compilación por plataforma
 
-### iOS ✅
+Los tres artefactos de producción se compilan y **están verificados sobre el estado actual del
+repositorio**:
 
-```bash
-flutter build ios --debug --no-codesign     # verificado
-flutter build ipa                            # release (requiere firma)
-```
+| Artefacto | Comando | Resultado |
+|---|---|---|
+| iOS (dispositivo) | `flutter build ios --release --no-codesign` | ✅ `Runner.app` · 16,6 MB |
+| Android APK | `flutter build apk --release` | ✅ `app-release.apk` · 48,8 MB |
+| Android App Bundle | `flutter build appbundle --release` | ✅ `app-release.aab` · 41,5 MB |
+
+Ninguno está firmado para distribución; ver [Roadmap](#roadmap).
+
+### iOS
 
 - **Deployment target:** iOS 13.0
 - **Orientaciones:** portrait y landscape (iPhone y iPad)
 - **Pods:** `shared_preferences_foundation` (única dependencia nativa)
-- Probado en el simulador de **iPhone 15**.
+- Probado en el simulador de **iPhone 15**, incluido el recorrido de integración.
 
-### Android ✅
-
-```bash
-flutter build apk --debug          # verificado
-flutter build appbundle --release  # verificado
-```
+### Android
 
 - **Permiso declarado:** `android.permission.INTERNET` (obligatorio para consumir la API)
 - **`compileSdk` / `targetSdk`:** los que provee el Flutter Gradle Plugin (API 34)
@@ -431,6 +486,14 @@ flutter build appbundle --release  # verificado
 > `flutter config --jdk-dir /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home`.
 > Android Studio **no lee esa opción**: su JDK se configura aparte, en
 > *Settings → Build, Execution, Deployment → Build Tools → Gradle → Gradle JDK*.
+
+> **Compila el release desde el CLI de Flutter, no desde la tarea de Gradle de Android Studio.**
+> `GeneratedPluginRegistrant.java` lo regenera Flutter en cada build **según el modo**, y tras correr
+> las pruebas de integración queda incluyendo `IntegrationTestPlugin`. Android Studio lanza Gradle sin
+> pasar por la herramienta de Flutter, así que reutiliza ese archivo y el release falla con
+> `package dev.flutter.plugins.integration_test does not exist`. Cualquier `flutter build` lo
+> regenera correctamente; `flutter clean` también. El archivo está en `.gitignore`, así que en un
+> clon nuevo no ocurre.
 
 ### Otras plataformas
 
@@ -500,6 +563,9 @@ documentan aquí para que la frontera entre *decisión* y *deuda* quede explíci
   descartan con la sesión.
 - **Sin caché de respuestas.** Cada vez que se marca una ciudad se consulta la API; no hay TTL ni
   almacenamiento intermedio.
+- **No está firmada para distribución.** Compila en modo release en ambas plataformas, pero el
+  artefacto de Android va con la clave de depuración y el identificador de ejemplo. Es una
+  demostración técnica, no un envío a las tiendas.
 - **Se consume `current_weather`**, es decir la temperatura actual y el código de condición. La API
   ofrece además pronóstico horario y a 7 días, no incorporados aquí.
 
@@ -519,8 +585,12 @@ Mejoras identificadas, en orden de valor:
    algunas listas como campos; llevarlas al estado y consumirlas con
    `BlocBuilder` haría el flujo unidireccional de punta a punta.
 4. **Configurar `Dio`** con `baseUrl`, timeouts e interceptor de logging.
-5. **CI** — `flutter analyze` + `flutter test` en cada push (GitHub Actions).
-6. **Segundo idioma** — el andamiaje de localización ya está; agregar un locale
+5. **Preparar la distribución** — el build de Android firma con la clave de depuración que dejó la
+   plantilla (`signingConfig = signingConfigs.debug`), que Google Play rechaza, y el identificador de
+   la aplicación sigue siendo `com.example.weather_bnka`. Publicar exige un keystore propio, un
+   `signingConfig` de release y un identificador definitivo; en iOS, el equipo de firma en Xcode.
+6. **CI** — `flutter analyze` + `flutter test` en cada push (GitHub Actions).
+7. **Segundo idioma** — el andamiaje de localización ya está; agregar un locale
    es añadir un `.arb`.
 
 ---
