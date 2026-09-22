@@ -159,11 +159,13 @@ capa de datos y el dominio nunca ve la forma de la respuesta HTTP.
 ```
 weather_bnka/
 ├── lib/
-│   ├── main.dart                        # Bootstrap: DI + BlocProvider raíz + MaterialApp
+│   ├── main.dart                        # Bootstrap: DI + blocs raíz + MaterialApp
 │   ├── injection_container.dart         # Registro de dependencias (GetIt)
+│   ├── l10n/
+│   │   └── app_es.arb                   # Toda la copia de la interfaz (español)
 │   ├── config/
 │   │   ├── routes/app_routes.dart       # Rutas nombradas vía onGenerateRoute
-│   │   └── theme/                       # Paletas de color por condición climática
+│   │   └── theme/app_theme.dart         # Tema único, con contraste verificado
 │   ├── core/
 │   │   └── util/utils.dart              # Extension String.toFlag (ISO-3166 → emoji)
 │   └── features/
@@ -178,12 +180,25 @@ weather_bnka/
 │       │   └── presentation/
 │       │       ├── bloc/auth_bloc/      # auth_bloc · auth_event · auth_state
 │       │       ├── pages/               # splash_screen · login_page · signup_page
-│       │       └── widgets/             # login_form · signup_form · action_button
+│       │       └── widgets/
+│       │           ├── auth_field.dart          # Campos compartidos por ambos formularios
+│       │           ├── auth_failure_text.dart   # Traduce AuthFailureReason a copia
+│       │           ├── login_form.dart
+│       │           ├── signup_form.dart
+│       │           └── action_button.dart
 │       └── home/
 │           └── presentation/
 │               ├── bloc/                # weather_bloc · weather_event · weather_state
 │               ├── pages/home_page.dart
 │               └── widgets/             # weather_details · weather_cards · cities_list_cards
+│
+├── test/                                # Pruebas unitarias y de widget de la app
+│   ├── helpers/pump_app.dart            # Andamiaje de localización para los tests
+│   ├── config/app_theme_test.dart
+│   └── features/{auth,home}/
+│
+├── integration_test/                    # Recorrido sobre un dispositivo real
+│   └── weather_flow_test.dart
 │
 └── packages/
     └── weather_repository/              # Paquete de dominio independiente
@@ -198,6 +213,7 @@ weather_bnka/
         │           ├── models/          # WeatherModel · LocationModel
         │           ├── data_sources/    # WeatherRemoteDataSource (Dio)
         │           └── repositories/    # WeatherRepositoryImpl · CityRepositoryImpl
+        ├── test/                        # Suite propia del paquete
         └── pubspec.yaml
 ```
 
@@ -271,8 +287,9 @@ dispararse desde cualquier pantalla autenticada.
 
 ### WeatherBloc
 
-Alcance **local**: se provee dentro de `HomePage`, de modo que su ciclo de vida queda atado a la
-sesión y se descarta al salir.
+Alcance **global**: se provee en la raíz junto a `AuthBloc`. Vivir por encima del navegador es lo que
+hace que **las ciudades seguidas sobrevivan al cambio de pestaña**, en vez de recargarse cada vez que
+el usuario vuelve al panel.
 
 | Eventos | Estados |
 |---|---|
