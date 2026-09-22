@@ -48,10 +48,7 @@ void main() {
         wait: const Duration(seconds: 4),
         expect: () => [
           isA<AuthFailure>().having(
-            (s) => s.error,
-            'error',
-            'Usuario no encontrado, regístrese primero.',
-          ),
+            (s) => s.reason, 'reason', AuthFailureReason.userNotFound),
           isA<AuthInitial>(),
         ],
       );
@@ -64,8 +61,8 @@ void main() {
         act: (bloc) => bloc.add(const LoginEvent('americo', 'wrong')),
         wait: const Duration(seconds: 4),
         expect: () => [
-          isA<AuthFailure>()
-              .having((s) => s.error, 'error', 'Credenciales incorrectas.'),
+          isA<AuthFailure>().having(
+              (s) => s.reason, 'reason', AuthFailureReason.wrongCredentials),
           isA<AuthInitial>(),
         ],
       );
@@ -79,10 +76,7 @@ void main() {
         wait: const Duration(seconds: 4),
         expect: () => [
           isA<AuthFailure>().having(
-            (s) => s.error,
-            'error',
-            'Usuario no reconocido, regístrese primero.',
-          ),
+            (s) => s.reason, 'reason', AuthFailureReason.unknownUser),
           isA<AuthInitial>(),
         ],
       );

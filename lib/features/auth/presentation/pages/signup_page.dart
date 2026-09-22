@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:weather_bnka/l10n/app_localizations.dart';
 import 'package:weather_bnka/features/auth/presentation/widgets/signup_form.dart';
 
 class SignupPage extends StatelessWidget {
@@ -7,9 +8,7 @@ class SignupPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Signup'),
-      ),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).signupTitle)),
       resizeToAvoidBottomInset: true,
       body: GestureDetector(
         onTap: () {

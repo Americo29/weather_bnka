@@ -13,14 +13,14 @@ class _MockGetCitiesUseCase extends Mock implements GetCitiesUseCase {}
 void main() {
   const catalogue = [City(name: 'Madrid'), City(name: 'Tokyo')];
 
-  final madrid = Location(
+  const madrid = Location(
     id: 3117735,
     name: 'Madrid',
     latitude: 40.4165,
     longitude: -3.70256,
     countryCode: 'ES',
   );
-  final mildWeather = Weather(temperature: 21.4, weatherCode: 3);
+  const mildWeather = Weather(temperature: 21.4, weatherCode: 3);
 
   late _MockGetLocationUseCase getLocation;
   late _MockGetWeatherUseCase getWeather;
@@ -58,8 +58,7 @@ void main() {
         act: (bloc) => bloc.add(LoadCities()),
         expect: () => [
           isA<WeatherLoading>(),
-          isA<WeatherError>()
-              .having((s) => s.message, 'message', 'Error al obtener la data'),
+          isA<WeatherError>(),
         ],
       );
     });
@@ -76,8 +75,20 @@ void main() {
         act: (bloc) => bloc.add(const GetWeatherForCity('Madrid')),
         expect: () => [
           isA<WeatherCityLoading>().having((s) => s.city, 'city', 'Madrid'),
+          // The placeholder is published before awaiting, so a card can show
+          // a spinner even if the widget mounts mid-request.
+          isA<WeatherFavCitiesLoaded>().having(
+            (s) => s.weatherCityList.single.isLoading,
+            'placeholder is loading',
+            isTrue,
+          ),
+          isA<WeatherFavCitiesLoaded>().having(
+            (s) => s.weatherCityList.single.isLoaded,
+            'resolved',
+            isTrue,
+          ),
           isA<WeatherCityLoaded>()
-              .having((s) => s.location.name, 'location', 'Madrid')
+              .having((s) => s.city, 'city', 'Madrid')
               .having((s) => s.weather?.temperature, 'temperature', 21.4),
         ],
         verify: (_) {
@@ -94,6 +105,12 @@ void main() {
         act: (bloc) => bloc.add(const GetWeatherForCity('Atlantis')),
         expect: () => [
           isA<WeatherCityLoading>(),
+          isA<WeatherFavCitiesLoaded>()
+              .having((s) => s.weatherCityList, 'placeholder added', hasLength(1)),
+          // The placeholder is withdrawn: nothing loaded, nothing to show.
+          isA<WeatherFavCitiesLoaded>()
+              .having((s) => s.weatherCityList, 'placeholder withdrawn', isEmpty),
+          isA<CitiesFavoriteUpdated>(),
           isA<WeatherError>(),
         ],
       );
@@ -123,6 +140,8 @@ void main() {
           ),
           // MarkCityAsFavorite dispatches GetWeatherForCity internally.
           isA<WeatherCityLoading>(),
+          isA<WeatherFavCitiesLoaded>(),
+          isA<WeatherFavCitiesLoaded>(),
           isA<WeatherCityLoaded>(),
         ],
         verify: (bloc) {

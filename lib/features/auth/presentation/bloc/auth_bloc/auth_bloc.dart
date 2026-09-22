@@ -22,7 +22,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       if (userRegistered == null) {
        
-        emit(const AuthFailure("Usuario no encontrado, regístrese primero."));
+        emit(const AuthFailure(AuthFailureReason.userNotFound));
       } else {
         
         final UserEntity user =
@@ -34,11 +34,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             emit(AuthSuccess(user)); // Credentials are valid, login successful
           } else {
             // Password is incorrect
-            emit(const AuthFailure("Credenciales incorrectas."));
+            emit(const AuthFailure(AuthFailureReason.wrongCredentials));
           }
         } else {
           // Username doesn't match the registered one
-          emit(const AuthFailure("Usuario no reconocido, regístrese primero."));
+          emit(const AuthFailure(AuthFailureReason.unknownUser));
         }
       }
 
@@ -46,7 +46,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await Future.delayed(const Duration(seconds: 3));
       emit(AuthInitial());
     } catch (error) {
-      emit(const AuthFailure("Credenciales incorrectas."));
+      emit(const AuthFailure(AuthFailureReason.wrongCredentials));
       await Future.delayed(const Duration(seconds: 3));
       emit(AuthInitial());
     }
@@ -62,7 +62,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await loginUseCase.loginUser(user);
       emit(AuthSuccess(user));
     } catch (error) {
-      emit(const AuthFailure("Credenciales incorrectas."));
+      emit(const AuthFailure(AuthFailureReason.wrongCredentials));
       await Future.delayed(const Duration(seconds: 3));
       emit(AuthInitial());
     }

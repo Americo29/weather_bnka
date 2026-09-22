@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:weather_bnka/core/util/utils.dart';
 import 'package:weather_bnka/features/home/presentation/bloc/weather_bloc.dart';
 import 'package:weather_bnka/features/home/presentation/widgets/weather_cards.dart';
+import 'package:weather_bnka/l10n/app_localizations.dart';
 import 'package:weather_repository/weather_repository.dart';
 
 class WeatherDetails extends StatefulWidget {
@@ -46,7 +47,7 @@ class _WeatherDetailsState extends State<WeatherDetails> {
           // The selection is left alone on purpose: whatever was on screen
           // before is still the only thing we can honestly show.
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
+            SnackBar(content: Text(AppLocalizations.of(context).weatherLoadError)),
           );
         }
       },
@@ -93,14 +94,16 @@ class _DetailPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final city = this.city;
     if (city == null) {
-      return const Padding(
-        padding: EdgeInsets.all(16.0),
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Center(
           child: Text(
-            'Seleccione una ciudad',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w300),
+            l10n.noCitySelected,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w300),
           ),
         ),
       );
@@ -127,7 +130,7 @@ class _DetailPanel extends StatelessWidget {
               ],
             ),
             Text(
-              'Temperature: ${city.weather!.temperature} °C',
+              l10n.temperature('${city.weather!.temperature}'),
               style: const TextStyle(fontSize: 18),
             ),
           ],
@@ -148,40 +151,39 @@ class _Summary extends StatelessWidget {
   Widget build(BuildContext context) {
     if (cities.isEmpty) return const SizedBox.shrink();
 
+    final l10n = AppLocalizations.of(context);
     final hottest = cities.reduce((a, b) =>
         a.weather!.temperature > b.weather!.temperature ? a : b);
     final coldest = cities.reduce((a, b) =>
         a.weather!.temperature < b.weather!.temperature ? a : b);
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Wrap(
+      alignment: WrapAlignment.center,
       children: [
         _Chip(
           color: Colors.deepOrange,
-          label: '${hottest.name} ${hottest.weather!.temperature} °C',
+          label: l10n.hottestCity(
+              hottest.name, '${hottest.weather!.temperature}'),
           textColor: Colors.white,
         ),
         _Chip(
           color: Colors.blue,
-          label: '${coldest.name} ${coldest.weather!.temperature} °C',
+          label: l10n.coldestCity(
+              coldest.name, '${coldest.weather!.temperature}'),
           textColor: Colors.white,
         ),
-        _Chip(
-          color: Colors.white,
-          label:
-              '${cities.length} ${cities.length == 1 ? 'Ciudad' : 'Ciudades'}',
-        ),
+        _Chip(label: l10n.cityCount(cities.length)),
       ],
     );
   }
 }
 
 class _Chip extends StatelessWidget {
-  final Color color;
+  final Color? color;
   final String label;
   final Color? textColor;
 
-  const _Chip({required this.color, required this.label, this.textColor});
+  const _Chip({required this.label, this.color, this.textColor});
 
   @override
   Widget build(BuildContext context) {

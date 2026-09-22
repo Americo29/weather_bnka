@@ -22,11 +22,15 @@ class AuthSuccess extends AuthState {
   List<Object> get props => [user];
 }
 
-class AuthFailure extends AuthState {
-  final String error;
+/// Why an attempt failed. The bloc stays free of user-facing copy; the widget
+/// layer turns this into a localized message.
+enum AuthFailureReason { userNotFound, wrongCredentials, unknownUser }
 
-  const AuthFailure(this.error);
+class AuthFailure extends AuthState {
+  final AuthFailureReason reason;
+
+  const AuthFailure(this.reason);
 
   @override
-  List<Object> get props => [error];
+  List<Object> get props => [reason];
 }

@@ -43,7 +43,7 @@ class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
 
       emit(CitiesLoaded(cities));
     } catch (error) {
-      emit(const WeatherError(message: 'Error al obtener la data'));
+      emit(const WeatherError());
     }
   }
 
@@ -53,7 +53,7 @@ class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
       emit(CitiesLoading());
       _toggleCity(event.cityName, emit);
     } catch (error) {
-      emit(const WeatherError(message: 'Error al obtener la data'));
+      emit(const WeatherError());
     }
   }
 
@@ -96,7 +96,7 @@ class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
 
       emit(WeatherFavCitiesLoaded(List.of(weatherCityList)));
       emit(CitiesFavoriteUpdated(cities));
-      emit(const WeatherError(message: 'Error al obtener la data'));
+      emit(const WeatherError());
     }
   }
 

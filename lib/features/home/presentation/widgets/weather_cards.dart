@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:weather_bnka/features/home/presentation/bloc/weather_bloc.dart';
+import 'package:weather_bnka/l10n/app_localizations.dart';
 import 'package:weather_repository/weather_repository.dart';
 
 class WeatherCardList extends StatelessWidget {
@@ -53,11 +54,8 @@ class WeatherCardList extends StatelessWidget {
                       height: 32,
                       child: IconButton(
                         padding: const EdgeInsets.all(4),
-                        icon: const Icon(
-                          Icons.delete_forever,
-                          color: Colors.black38,
-                          size: 20,
-                        ),
+                        icon: const Icon(Icons.delete_forever, size: 20),
+                        tooltip: weatherCity.name,
                         // Removing a city mid-request would leave the pending
                         // response with nothing to land on.
                         onPressed: weatherCity.isLoading
@@ -97,22 +95,27 @@ class _CardStatus extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     if (weatherCity.isLoading) {
-      return const SizedBox(
-        key: ValueKey('card-spinner'),
-        width: 16,
-        height: 16,
-        child: CircularProgressIndicator(strokeWidth: 2),
+      return Semantics(
+        label: l10n.loadingCity(weatherCity.name),
+        child: const SizedBox(
+          key: ValueKey('card-spinner'),
+          width: 16,
+          height: 16,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
       );
     }
 
     final weather = weatherCity.weather;
     if (weather == null) {
-      return const Text('Datos no disponibles');
+      return Text(l10n.dataUnavailable);
     }
 
     return Text(
-      'Temperatura: ${weather.temperature} °C',
+      l10n.temperature('${weather.temperature}'),
       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w300),
     );
   }

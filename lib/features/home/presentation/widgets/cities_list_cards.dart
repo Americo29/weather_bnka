@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:weather_bnka/features/home/presentation/bloc/weather_bloc.dart';
+import 'package:weather_bnka/l10n/app_localizations.dart';
 import 'package:weather_repository/weather_repository.dart';
 
 class CitiesListCards extends StatefulWidget {
@@ -49,15 +50,11 @@ class _CitiesListCardsState extends State<CitiesListCards> {
       },
       child: Column(
         children: [
-          const Padding(
-            padding: EdgeInsets.only(top: 8, bottom: 32),
+          Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 32),
             child: Text(
-              'Selecciona una ciudad',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w300,
-                color: Colors.black,
-              ),
+              AppLocalizations.of(context).pickACity,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w300),
             ),
           ),
           Expanded(

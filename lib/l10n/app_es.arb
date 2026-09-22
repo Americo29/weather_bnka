@@ -1,0 +1,53 @@
+{
+  "@@locale": "es",
+
+  "loginTitle": "Iniciar sesión",
+  "signupTitle": "Crear cuenta",
+  "usernameHint": "Usuario",
+  "passwordHint": "Contraseña",
+  "forgotPassword": "¿Has olvidado tu contraseña?",
+  "loginAction": "Entrar",
+  "signupAction": "Registrarse",
+
+  "usernameRequired": "Por favor ingrese su nombre de usuario",
+  "usernameInvalidChars": "El nombre no puede contener caracteres especiales",
+  "passwordRequired": "Por favor ingrese su contraseña",
+  "passwordTooShort": "La contraseña debe tener al menos {min} caracteres",
+  "@passwordTooShort": {
+    "placeholders": { "min": { "type": "int" } }
+  },
+
+  "authUserNotFound": "Usuario no encontrado, regístrese primero",
+  "authWrongCredentials": "Credenciales incorrectas",
+  "authUnknownUser": "Usuario no reconocido, regístrese primero",
+
+  "navHome": "Inicio",
+  "navCities": "Ciudades",
+  "logoutTooltip": "Cerrar sesión",
+
+  "pickACity": "Selecciona una ciudad",
+  "noCitySelected": "Selecciona una ciudad para ver su clima",
+  "temperature": "Temperatura: {value} °C",
+  "@temperature": {
+    "placeholders": { "value": { "type": "String" } }
+  },
+  "dataUnavailable": "Datos no disponibles",
+  "loadingCity": "Cargando {city}",
+  "@loadingCity": {
+    "placeholders": { "city": { "type": "String" } }
+  },
+  "weatherLoadError": "No se pudo obtener la información del clima",
+
+  "cityCount": "{count, plural, =1{1 ciudad} other{{count} ciudades}}",
+  "@cityCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "hottestCity": "Más cálida: {city} {value} °C",
+  "@hottestCity": {
+    "placeholders": { "city": { "type": "String" }, "value": { "type": "String" } }
+  },
+  "coldestCity": "Más fría: {city} {value} °C",
+  "@coldestCity": {
+    "placeholders": { "city": { "type": "String" }, "value": { "type": "String" } }
+  }
+}
