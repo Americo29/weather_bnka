@@ -4,14 +4,13 @@ Aplicación móvil que muestra la temperatura actual de las ciudades que el usua
 con registro y sesión en el dispositivo. Funciona en **iOS y Android desde el mismo código**.
 
 <p align="center">
-  <img src="docs/screenshots/01-login.png" width="23%" alt="Pantalla de inicio de sesión" />
-  <img src="docs/screenshots/03-ciudades.png" width="23%" alt="Catálogo de ciudades" />
-  <img src="docs/screenshots/04-cargando.png" width="23%" alt="Ciudad cargando su pronóstico" />
-  <img src="docs/screenshots/05-panel.png" width="23%" alt="Panel con dos ciudades seguidas" />
+  <img src="docs/screenshots/01-login.png" width="30%" alt="Pantalla de inicio de sesión" />
+  <img src="docs/screenshots/03-ciudades.png" width="30%" alt="Catálogo de ciudades" />
+  <img src="docs/screenshots/05-panel.png" width="30%" alt="Panel con dos ciudades seguidas" />
 </p>
 
 <p align="center">
-  <sub>Inicio de sesión · catálogo de ciudades · una ciudad consultándose ·
+  <sub>Inicio de sesión · catálogo de ciudades ·
   panel con la ciudad seleccionada destacada</sub>
 </p>
 

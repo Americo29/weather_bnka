@@ -113,11 +113,14 @@ class _CardStatus extends StatelessWidget {
     if (weatherCity.isLoading) {
       return Semantics(
         label: l10n.loadingCity(weatherCity.name),
+        // 16px with a 2px stroke read as a dot rather than as activity, on the
+        // device as much as in a screenshot. This is the smallest size at which
+        // the sweep is legible next to 12sp text.
         child: SizedBox(
           key: const ValueKey('card-spinner'),
-          width: 16,
-          height: 16,
-          child: CircularProgressIndicator(strokeWidth: 2, color: foreground),
+          width: 22,
+          height: 22,
+          child: CircularProgressIndicator(strokeWidth: 2.5, color: foreground),
         ),
       );
     }

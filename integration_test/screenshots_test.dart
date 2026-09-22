@@ -26,11 +26,23 @@ Future<void> waitForCount(WidgetTester t, String text, int count,
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
+  /// Captures [name] once the route transition has finished painting.
+  ///
+  /// A finder matches as soon as the page enters the tree, which is while the
+  /// previous route is still on top -- capturing then yields the splash screen
+  /// labelled as the login.
+  Future<void> shoot(WidgetTester tester, String name) async {
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+    await binding.takeScreenshot(name);
+  }
+
   testWidgets('capture the product screenshots', (tester) async {
     app.main();
 
     await waitFor(tester, find.text('Registrarse'));
-    await binding.takeScreenshot('01-login');
+    await shoot(tester, '01-login');
 
     await tester.tap(find.text('Registrarse'));
     await waitFor(tester, find.widgetWithText(ElevatedButton, 'Registrarse'));
@@ -40,7 +52,7 @@ void main() {
     );
     await tester.enterText(fields.at(0), 'demo');
     await tester.enterText(fields.at(1), '1234');
-    await binding.takeScreenshot('02-registro');
+    await shoot(tester, '02-registro');
 
     await tester.tap(find.descendant(
       of: find.byType(SignupPage),
@@ -53,12 +65,13 @@ void main() {
 
     await tester.tap(find.byIcon(Icons.location_city).hitTestable());
     await waitFor(tester, find.text('Madrid'));
-    await binding.takeScreenshot('03-ciudades');
+    await shoot(tester, '03-ciudades');
 
-    // Straight after selecting, while the forecast is still in flight.
+    // The loading state is deliberately not captured: the driver renders the
+    // progress indicator with its sweep at near-zero length, so the shot shows
+    // a dot rather than the spinner a user sees. weather_cards_test covers the
+    // behaviour instead.
     await tester.tap(find.text('Madrid'));
-    await tester.pump(const Duration(milliseconds: 300));
-    await binding.takeScreenshot('04-cargando');
 
     await waitForCount(tester, 'Madrid', 2);
     await tester.tap(find.byIcon(Icons.location_city).hitTestable());
@@ -68,6 +81,6 @@ void main() {
     for (var i = 0; i < 6; i++) {
       await tester.pump(const Duration(milliseconds: 300));
     }
-    await binding.takeScreenshot('05-panel');
+    await shoot(tester, '05-panel');
   });
 }
