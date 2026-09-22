@@ -3,6 +3,22 @@
 Aplicación móvil que muestra la temperatura actual de las ciudades que el usuario elige seguir,
 con registro y sesión en el dispositivo. Funciona en **iOS y Android desde el mismo código**.
 
+<p align="center">
+  <img src="docs/screenshots/01-login.png" width="23%" alt="Pantalla de inicio de sesión" />
+  <img src="docs/screenshots/03-ciudades.png" width="23%" alt="Catálogo de ciudades" />
+  <img src="docs/screenshots/04-cargando.png" width="23%" alt="Ciudad cargando su pronóstico" />
+  <img src="docs/screenshots/05-panel.png" width="23%" alt="Panel con dos ciudades seguidas" />
+</p>
+
+<p align="center">
+  <sub>Inicio de sesión · catálogo de ciudades · una ciudad consultándose ·
+  panel con la ciudad seleccionada destacada</sub>
+</p>
+
+> Capturas tomadas en un iPhone 15, **generadas por la propia suite de pruebas**
+> (`integration_test/screenshots_test.dart`): se regeneran solas y por eso no pueden quedar
+> desactualizadas respecto a la aplicación.
+
 ---
 
 ## Para qué se construyó
@@ -475,6 +491,9 @@ que cada instalación empieza en blanco.
 2. Como todavía no hay nadie registrado, pulsa **Registrarse** y crea una cuenta:
    - **Usuario:** sin caracteres especiales (`demo` sirve).
    - **Contraseña:** **mínimo 4 caracteres** (`1234` sirve).
+
+   <img src="docs/screenshots/02-registro.png" width="220" alt="Formulario de registro" />
+
 3. El registro deja la sesión iniciada y entra directo a la pantalla principal.
 4. En la pestaña **Ciudades**, toca una para seguirla: la app vuelve a **Inicio** y carga su clima,
    mostrando un indicador de carga en su tarjeta mientras tanto.
@@ -573,6 +592,17 @@ una ciudad, ver girar su tarjeta con el panel aún vacío, y seguir una segunda
 comprobando que el panel conserva la primera hasta que la segunda resuelve.
 Vive fuera de `test/`, así que `flutter test` no lo recoge y CI no necesita un
 dispositivo.
+
+**Las capturas del encabezado también las genera la suite.** No se toman a mano, así que no pueden
+quedar desfasadas respecto a la interfaz:
+
+```bash
+flutter drive --driver=test_driver/integration_test.dart \
+              --target=integration_test/screenshots_test.dart -d <device-id>
+```
+
+Escribe los PNG en `docs/screenshots/`; el repositorio los guarda reescalados a 700 px de alto
+(196 KB en total).
 
 ---
 
