@@ -32,18 +32,33 @@ class ThemeManager {
     return ColorPalettes.stormy;
   }
 
+  /// Black or white, whichever reads better on [background].
+  ///
+  /// The palettes declare their own `onPrimary`, but some of those pairings do
+  /// not clear WCAG AA: white on `rainy` scores 4.11 and on `cloudy` 3.64. The
+  /// threshold is where contrast against black and against white is equal.
+  @visibleForTesting
+  static Color readableOn(Color background) =>
+      background.computeLuminance() > 0.179 ? Colors.black : Colors.white;
+
   static ThemeData _themeFrom(ColorPalette palette) {
+    final onPrimary = readableOn(palette.primary);
+    // A text button sits on the page, not on a filled surface, so it has to
+    // contrast with the background. Using `primary` fails in every palette
+    // (1.18 to 2.43) -- most visibly gold on cream at 1.32.
+    final onBackground = readableOn(palette.background);
+
     final scheme = ColorScheme(
       brightness: ThemeData.estimateBrightnessForColor(palette.background) ==
               Brightness.dark
           ? Brightness.dark
           : Brightness.light,
       primary: palette.primary,
-      onPrimary: palette.onPrimary,
+      onPrimary: onPrimary,
       secondary: palette.secondary,
-      onSecondary: palette.onPrimary,
+      onSecondary: readableOn(palette.secondary),
       error: palette.error,
-      onError: Colors.white,
+      onError: readableOn(palette.error),
       surface: palette.surface,
       onSurface: palette.onSurface,
     );
@@ -55,7 +70,7 @@ class ThemeManager {
       fontFamily: 'Manrope',
       appBarTheme: AppBarTheme(
         backgroundColor: palette.primary,
-        foregroundColor: palette.onPrimary,
+        foregroundColor: onPrimary,
         elevation: 0,
       ),
       cardTheme: CardThemeData(
@@ -66,13 +81,16 @@ class ThemeManager {
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: palette.primary,
-        selectedItemColor: palette.onPrimary,
-        unselectedItemColor: palette.onPrimary.withValues(alpha: 0.6),
+        selectedItemColor: onPrimary,
+        unselectedItemColor: onPrimary.withValues(alpha: 0.7),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: onBackground),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: palette.primary,
-          foregroundColor: palette.onPrimary,
+          foregroundColor: onPrimary,
           minimumSize: const Size(double.infinity, 50),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

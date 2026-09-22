@@ -1,6 +1,15 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:weather_bnka/config/theme/color_palettes.dart';
 import 'package:weather_bnka/config/theme/theme.dart';
+
+/// WCAG 2.1 relative-luminance contrast ratio, from 1 (identical) to 21.
+double contrast(Color a, Color b) {
+  final la = a.computeLuminance();
+  final lb = b.computeLuminance();
+  final (hi, lo) = la > lb ? (la, lb) : (lb, la);
+  return (hi + 0.05) / (lo + 0.05);
+}
 
 void main() {
   group('ThemeManager.paletteFor', () {
@@ -39,6 +48,46 @@ void main() {
     test('a wet sky and a clear sky do not produce the same theme', () {
       expect(ThemeManager.themeFor(61).colorScheme.primary,
           isNot(ThemeManager.themeFor(0).colorScheme.primary));
+    });
+  });
+
+  group('contrast', () {
+    // Every weather code the API can report, one per palette group.
+    const codesPerPalette = [0, 2, 61, 71, 95];
+    const minimum = 4.5; // WCAG AA for normal text
+
+    test('the checker itself is right', () {
+      expect(contrast(Colors.black, Colors.white), closeTo(21, 0.01));
+      expect(contrast(Colors.white, Colors.white), closeTo(1, 0.01));
+    });
+
+    test('button and app bar labels are legible on every palette', () {
+      for (final code in codesPerPalette) {
+        final scheme = ThemeManager.themeFor(code).colorScheme;
+        expect(contrast(scheme.onPrimary, scheme.primary),
+            greaterThanOrEqualTo(minimum),
+            reason: 'code $code');
+      }
+    });
+
+    test('text buttons are legible on the page behind them', () {
+      for (final code in codesPerPalette) {
+        final theme = ThemeManager.themeFor(code);
+        final foreground = theme.textButtonTheme.style!.foregroundColor!
+            .resolve({})!;
+        expect(contrast(foreground, theme.scaffoldBackgroundColor),
+            greaterThanOrEqualTo(minimum),
+            reason: 'code $code');
+      }
+    });
+
+    test('card text is legible on the card', () {
+      for (final code in codesPerPalette) {
+        final scheme = ThemeManager.themeFor(code).colorScheme;
+        expect(contrast(scheme.onSurface, scheme.surface),
+            greaterThanOrEqualTo(minimum),
+            reason: 'code $code');
+      }
     });
   });
 }
