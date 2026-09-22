@@ -50,6 +50,11 @@ no incluir —y poder justificarlo con datos— suele valer más que la función
 | Accesibilidad | WCAG AA verificado por prueba |
 | Idiomas | español, con la base lista para añadir más |
 
+> **Para probarla: primero hay que crear una cuenta.** No existe un usuario de demostración, porque
+> el registro es local al dispositivo. En la pantalla inicial pulsa **Registrarse** e inventa un
+> usuario y una contraseña de **4 caracteres como mínimo** (por ejemplo `demo` / `1234`). El registro
+> deja la sesión iniciada y entra directo a la aplicación. No se envía nada a ningún servidor.
+
 > **Alcance:** es una demostración técnica, no un producto listo para publicar en las tiendas. El
 > registro es local al dispositivo y falta la firma digital de distribución. Ambas cosas están
 > detalladas, sin adornos, en [Alcance y decisiones de diseño](#alcance-y-decisiones-de-diseño).
@@ -446,12 +451,22 @@ No hace falta ninguna variable de entorno ni API key: Open-Meteo es de acceso ab
 
 ### Primer uso
 
-1. La app abre en el splash y navega a **Login**.
-2. Como todavía no hay usuario registrado, pulsa **Sign Up** y crea uno
-   (usuario sin caracteres especiales · contraseña de 4 caracteres o más).
-3. El registro deja la sesión iniciada y lleva directo a **Home**.
-4. En el tab **Cities**, toca una ciudad para seguirla: la app vuelve a **Home** y carga su clima.
-5. Toca una tarjeta para ver su detalle; el icono de papelera deja de seguir la ciudad.
+**No hay cuenta de demostración: hay que registrarse.** El usuario se guarda en el dispositivo, así
+que cada instalación empieza en blanco.
+
+1. Tras el splash, la app abre en **Iniciar sesión**.
+2. Como todavía no hay nadie registrado, pulsa **Registrarse** y crea una cuenta:
+   - **Usuario:** sin caracteres especiales (`demo` sirve).
+   - **Contraseña:** **mínimo 4 caracteres** (`1234` sirve).
+3. El registro deja la sesión iniciada y entra directo a la pantalla principal.
+4. En la pestaña **Ciudades**, toca una para seguirla: la app vuelve a **Inicio** y carga su clima,
+   mostrando un indicador de carga en su tarjeta mientras tanto.
+5. Toca una tarjeta ya cargada para verla en el panel superior; el icono de papelera deja de seguirla.
+6. El icono de salida de la barra superior cierra la sesión y borra el usuario guardado — para volver
+   a entrar hay que registrarse otra vez.
+
+> El mínimo de 4 caracteres es deliberadamente laxo para que probar sea rápido; vive en una sola
+> constante (`AuthFields.minPasswordLength`), no repartido por los formularios.
 
 ---
 
