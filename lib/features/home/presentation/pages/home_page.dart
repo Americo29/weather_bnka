@@ -3,10 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:weather_bnka/features/auth/presentation/bloc/auth_bloc/auth_bloc.dart';
 import 'package:weather_bnka/features/auth/presentation/pages/login_page.dart';
-import 'package:weather_bnka/features/home/presentation/bloc/weather_bloc.dart';
 import 'package:weather_bnka/features/home/presentation/widgets/cities_list_cards.dart';
 import 'package:weather_bnka/features/home/presentation/widgets/weather_details.dart';
-import 'package:weather_bnka/injection_container.dart';
 import 'package:weather_bnka/l10n/app_localizations.dart';
 
 class HomePage extends StatefulWidget {
@@ -58,20 +56,14 @@ class _HomePageState extends State<HomePage> {
             IconButton.outlined(
               onPressed: _logout,
               icon: const Icon(Icons.logout),
-              color: Colors.amber,
               tooltip: l10n.logoutTooltip,
             ),
           ],
         ),
-        body: BlocProvider<WeatherBloc>(
-          create: (context) => getIt<WeatherBloc>(),
-          child: _selectedIndex == 0
-              ? const WeatherDetails()
-              : CitiesListCards(onCityFavorite: _navigateToWeatherDetails),
-        ),
+        body: _selectedIndex == 0
+            ? const WeatherDetails()
+            : CitiesListCards(onCityFavorite: _navigateToWeatherDetails),
         bottomNavigationBar: BottomNavigationBar(
-          backgroundColor: Colors.blueGrey,
-          selectedItemColor: Colors.white,
           items: <BottomNavigationBarItem>[
             BottomNavigationBarItem(
               icon: const Icon(Icons.home),

@@ -43,7 +43,9 @@ class WeatherCardList extends StatelessWidget {
                 ? () => onCardSelected(weatherCity)
                 : null,
             child: Card(
-              color: isSelected ? Colors.blue.shade100 : Colors.white,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primaryContainer
+                  : null,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

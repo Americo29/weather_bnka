@@ -77,7 +77,6 @@ class _CitiesListCardsState extends State<CitiesListCards> {
                       _toggleFavorite(city.name);
                     },
                     child: Card(
-                      color: Colors.white,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                             vertical: 12.0, horizontal: 16.0),
