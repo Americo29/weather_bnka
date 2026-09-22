@@ -2,7 +2,7 @@
 import '../../domain/entities/weather.dart';
 
 class WeatherModel extends Weather {
-  WeatherModel({
+  const WeatherModel({
     required super.temperature,
     required super.weatherCode,
   });

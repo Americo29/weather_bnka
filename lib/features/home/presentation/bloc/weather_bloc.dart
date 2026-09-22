@@ -51,31 +51,7 @@ class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
       MarkCityAsFavorite event, Emitter<WeatherState> emit) async {
     try {
       emit(CitiesLoading());
-      final cityName = event.cityName;
-      final List<City> modifiableCities = List.from(cities);
-
-      final index =
-          modifiableCities.indexWhere((city) => city.name == cityName);
-
-      if (index != -1) {
-        final updatedCity = cities[index].toggleFavorite();
-
-        modifiableCities[index] = updatedCity;
-
-        if (updatedCity.isFavorite) {
-          if (!favoriteCities.any((city) => city.name == cityName)) {
-            add(GetWeatherForCity(cityName));
-            favoriteCities.add(updatedCity);
-          }
-        } else {
-          favoriteCities.removeWhere((city) => city.name == cityName);
-          weatherCityList.removeWhere((city) => city.name == cityName);
-        }
-
-        cities = modifiableCities;
-
-        emit(CitiesFavoriteUpdated(cities));
-      }
+      _toggleCity(event.cityName, emit);
     } catch (error) {
       emit(const WeatherError(message: 'Error al obtener la data'));
     }
@@ -83,58 +59,78 @@ class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
 
   Future<void> _onWeatherDetails(
       GetWeatherForCity event, Emitter<WeatherState> emit) async {
+    final city = event.city;
+
+    // Publish a placeholder before awaiting, so the card can show a spinner
+    // even if the widget mounts after the request already started.
+    weatherCityList.add(WeatherCity(name: city, isFavorite: true));
+    emit(WeatherCityLoading(city));
+    emit(WeatherFavCitiesLoaded(List.of(weatherCityList)));
+
     try {
-      final city = event.city;
-
-      emit(WeatherCityLoading(city));
-
       final location = await getLocationUseCase.call(city);
-
       final weather =
           await getWeatherUseCase.call(location.latitude, location.longitude);
 
-      weatherCityList.add(WeatherCity(
-          name: location.name, location: location, weather: weather));
+      // Keep the catalogue name as the identity: the API may answer with a
+      // different one (it returns "Brussels" for "Bruselas").
+      final index = weatherCityList.indexWhere((c) => c.name == city);
+      if (index != -1) {
+        weatherCityList[index] = weatherCityList[index].copyWith(
+          location: location,
+          weather: weather,
+          isLoading: false,
+        );
+      }
 
-      emit(WeatherCityLoaded(location: location, weather: weather));
+      emit(WeatherFavCitiesLoaded(List.of(weatherCityList)));
+      emit(WeatherCityLoaded(location: location, weather: weather, city: city));
     } catch (error) {
-      emit(
-        const WeatherError(message: 'Error al obtener la data'),
-      );
+      // Drop the placeholder and unmark the city: nothing was loaded, so the
+      // previous selection must stay untouched.
+      weatherCityList.removeWhere((c) => c.name == city && c.isLoading);
+      favoriteCities.removeWhere((c) => c.name == city);
+      cities = cities
+          .map((c) => c.name == city ? City(name: c.name) : c)
+          .toList();
+
+      emit(WeatherFavCitiesLoaded(List.of(weatherCityList)));
+      emit(CitiesFavoriteUpdated(cities));
+      emit(const WeatherError(message: 'Error al obtener la data'));
     }
   }
 
   Future<void> _onWeatherFavCities(
       GetWeatherFavCities event, Emitter<WeatherState> emit) async {
-    emit(WeatherFavCitiesLoaded(weatherCityList));
+    emit(WeatherFavCitiesLoaded(List.of(weatherCityList)));
   }
 
   Future<void> _onRemoveWeatherFavCity(
       RemoveWeatherFavCity event, Emitter<WeatherState> emit) async {
-    final cityName = event.city;
-    final List<City> modifiableCities = List.from(cities);
+    _toggleCity(event.city, emit);
+    emit(WeatherFavCitiesLoaded(List.of(weatherCityList)));
+  }
 
+  /// Flips the favourite flag of [cityName] and starts or discards its forecast.
+  void _toggleCity(String cityName, Emitter<WeatherState> emit) {
+    final modifiableCities = List<City>.from(cities);
     final index = modifiableCities.indexWhere((city) => city.name == cityName);
+    if (index == -1) return;
 
-    if (index != -1) {
-      final updatedCity = cities[index].toggleFavorite();
+    final updatedCity = cities[index].toggleFavorite();
+    modifiableCities[index] = updatedCity;
 
-      modifiableCities[index] = updatedCity;
-
-      if (updatedCity.isFavorite) {
-        if (!favoriteCities.any((city) => city.name == cityName)) {
-          add(GetWeatherForCity(cityName));
-          favoriteCities.add(updatedCity);
-        }
-      } else {
-        favoriteCities.removeWhere((city) => city.name == cityName);
-        weatherCityList.removeWhere((city) => city.name == cityName);
+    if (updatedCity.isFavorite) {
+      if (!favoriteCities.any((city) => city.name == cityName)) {
+        favoriteCities.add(updatedCity);
+        add(GetWeatherForCity(cityName));
       }
-
-      cities = modifiableCities;
-
-      emit(CitiesFavoriteUpdated(cities));
-      emit(WeatherFavCitiesLoaded(weatherCityList));
+    } else {
+      favoriteCities.removeWhere((city) => city.name == cityName);
+      weatherCityList.removeWhere((city) => city.name == cityName);
     }
+
+    cities = modifiableCities;
+    emit(CitiesFavoriteUpdated(cities));
   }
 }

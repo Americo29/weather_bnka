@@ -4,7 +4,7 @@ sealed class WeatherState extends Equatable {
   const WeatherState();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 final class WeatherInitial extends WeatherState {}
@@ -19,17 +19,23 @@ class WeatherCityLoading extends WeatherState {
   const WeatherCityLoading(this.city);
 
   @override
-  List<Object> get props => [city];
+  List<Object?> get props => [city];
 }
 
 class WeatherCityLoaded extends WeatherState {
+  /// Catalogue name of the city, which is what identifies it everywhere else.
+  final String city;
   final Location location;
   final Weather? weather;
 
-  const WeatherCityLoaded({required this.location, required this.weather});
+  const WeatherCityLoaded({
+    required this.city,
+    required this.location,
+    required this.weather,
+  });
 
   @override
-  List<Object> get props => [location, weather as Object? ?? Object()];
+  List<Object?> get props => [city, location, weather];
 }
 
 class WeatherFavCitiesLoaded extends WeatherState {
@@ -38,7 +44,7 @@ class WeatherFavCitiesLoaded extends WeatherState {
   const WeatherFavCitiesLoaded(this.weatherCityList);
 
   @override
-  List<Object> get props => [weatherCityList];
+  List<Object?> get props => [weatherCityList];
 }
 
 final class CitiesLoading extends WeatherState {}
@@ -49,7 +55,7 @@ class CitiesLoaded extends WeatherState {
   const CitiesLoaded(this.cities);
 
   @override
-  List<Object> get props => [cities];
+  List<Object?> get props => [cities];
 }
 
 class CitiesFavoriteUpdated extends WeatherState {
@@ -58,7 +64,7 @@ class CitiesFavoriteUpdated extends WeatherState {
   const CitiesFavoriteUpdated(this.cities);
 
   @override
-  List<Object> get props => [cities];
+  List<Object?> get props => [cities];
 }
 
 class WeatherError extends WeatherState {
@@ -67,5 +73,5 @@ class WeatherError extends WeatherState {
   const WeatherError({required this.message});
 
   @override
-  List<Object> get props => [message];
+  List<Object?> get props => [message];
 }

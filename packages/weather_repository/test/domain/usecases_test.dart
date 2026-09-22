@@ -17,7 +17,7 @@ void main() {
     });
 
     test('delegates to the repository and returns its location', () async {
-      final location = Location(
+      const location = Location(
         id: 1,
         name: 'Madrid',
         latitude: 40.4165,
@@ -51,7 +51,7 @@ void main() {
     });
 
     test('forwards the coordinates it was given, in order', () async {
-      final weather = Weather(temperature: 21.4, weatherCode: 3);
+      const weather = Weather(temperature: 21.4, weatherCode: 3);
       when(() => repository.getWeather(any(), any()))
           .thenAnswer((_) async => weather);
 

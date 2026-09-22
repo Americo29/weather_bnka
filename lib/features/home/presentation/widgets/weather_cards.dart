@@ -3,32 +3,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:weather_bnka/features/home/presentation/bloc/weather_bloc.dart';
 import 'package:weather_repository/weather_repository.dart';
 
-class WeatherCardList extends StatefulWidget {
+class WeatherCardList extends StatelessWidget {
   final List<WeatherCity> weatherCityList;
-  final int? selectedIndex;
-  final Function(int index) onCardSelected;
+
+  /// Catalogue name of the selected city, or null when none is selected.
+  final String? selectedCity;
+  final ValueChanged<WeatherCity> onCardSelected;
 
   const WeatherCardList({
     super.key,
     required this.weatherCityList,
     required this.onCardSelected,
-    this.selectedIndex,
+    this.selectedCity,
   });
-
-  @override
-  State<WeatherCardList> createState() => _WeatherCardListState();
-}
-
-class _WeatherCardListState extends State<WeatherCardList> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  void _removeWeatherFavCity(String cityName) {
-    final weatherBloc = BlocProvider.of<WeatherBloc>(context);
-    weatherBloc.add(RemoveWeatherFavCity(cityName));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,13 +30,17 @@ class _WeatherCardListState extends State<WeatherCardList> {
           mainAxisSpacing: 10.0,
           childAspectRatio: 4 / 2,
         ),
-        itemCount: widget.weatherCityList.length,
+        itemCount: weatherCityList.length,
         itemBuilder: (context, index) {
-          final weatherCity = widget.weatherCityList[index];
-          final isSelected = widget.selectedIndex == index;
+          final weatherCity = weatherCityList[index];
+          final isSelected = weatherCity.name == selectedCity;
 
           return GestureDetector(
-            onTap: () => widget.onCardSelected(index),
+            // A city that is still loading cannot be selected: there is
+            // nothing to show for it yet.
+            onTap: weatherCity.isLoaded
+                ? () => onCardSelected(weatherCity)
+                : null,
             child: Card(
               color: isSelected ? Colors.blue.shade100 : Colors.white,
               child: Column(
@@ -67,8 +58,13 @@ class _WeatherCardListState extends State<WeatherCardList> {
                           color: Colors.black38,
                           size: 20,
                         ),
-                        onPressed: () =>
-                            _removeWeatherFavCity(weatherCity.name),
+                        // Removing a city mid-request would leave the pending
+                        // response with nothing to land on.
+                        onPressed: weatherCity.isLoading
+                            ? null
+                            : () => context
+                                .read<WeatherBloc>()
+                                .add(RemoveWeatherFavCity(weatherCity.name)),
                       ),
                     ),
                   ),
@@ -81,18 +77,8 @@ class _WeatherCardListState extends State<WeatherCardList> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(left: 14.0),
-                    child: weatherCity.isLoading
-                        ? const Text('...cargando',
-                            style: TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.w300))
-                        : weatherCity.weather != null
-                            ? Text(
-                                'Temperatura: ${weatherCity.weather!.temperature.toString()} °C',
-                                style: const TextStyle(
-                                    fontSize: 12, fontWeight: FontWeight.w300),
-                              )
-                            : const Text('Datos no disponibles'),
+                    padding: const EdgeInsets.only(left: 14.0, top: 4.0),
+                    child: _CardStatus(weatherCity: weatherCity),
                   ),
                 ],
               ),
@@ -100,6 +86,34 @@ class _WeatherCardListState extends State<WeatherCardList> {
           );
         },
       ),
+    );
+  }
+}
+
+class _CardStatus extends StatelessWidget {
+  final WeatherCity weatherCity;
+
+  const _CardStatus({required this.weatherCity});
+
+  @override
+  Widget build(BuildContext context) {
+    if (weatherCity.isLoading) {
+      return const SizedBox(
+        key: ValueKey('card-spinner'),
+        width: 16,
+        height: 16,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      );
+    }
+
+    final weather = weatherCity.weather;
+    if (weather == null) {
+      return const Text('Datos no disponibles');
+    }
+
+    return Text(
+      'Temperatura: ${weather.temperature} °C',
+      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w300),
     );
   }
 }

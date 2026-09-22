@@ -1,7 +1,7 @@
 import '../../domain/entities/location.dart';
 
 class LocationModel extends Location {
-  LocationModel({
+  const LocationModel({
     required super.id,
     required super.name,
     required super.latitude,
